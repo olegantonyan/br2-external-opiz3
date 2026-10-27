@@ -1,0 +1,34 @@
+From: OPIZ3 br2-external
+Subject: clk: sunxi-ng: h616: fix audio PLL SDM rates and spdif rate propagation
+
+The SDM table rates are compared after multiplying by fixed_post_div (M0=2),
+but the values 98.304/90.3168 MHz are already post-M0 (24 MHz * 40.96 / 2 / 5).
+The clock framework therefore reported half the real rate and S/PDIF played
+at 2x speed. Use the pre-M0 rates so pll-audio-hs = 98.304/90.3168 MHz and
+pll-audio-1x = 24.576/22.5792 MHz, as the original comment intends.
+
+Also let the spdif clock propagate rate requests to the audio PLL; without
+it the PLL stays at its boot rate and 44.1 kHz streams run at ~24 kHz.
+---
+--- a/drivers/clk/sunxi-ng/ccu-sun50i-h616.c
++++ b/drivers/clk/sunxi-ng/ccu-sun50i-h616.c
+@@ -223,8 +223,8 @@
+  * frequencies with less error.
+  */
+ static struct ccu_sdm_setting pll_audio_sdm_table[] = {
+-	{ .rate = 90316800, .pattern = 0xc001288d, .m = 3, .n = 22 },
+-	{ .rate = 98304000, .pattern = 0xc001eb85, .m = 5, .n = 40 },
++	{ .rate = 180633600, .pattern = 0xc001288d, .m = 3, .n = 22 },
++	{ .rate = 196608000, .pattern = 0xc001eb85, .m = 5, .n = 40 },
+ };
+ 
+ #define SUN50I_H616_PLL_AUDIO_REG	0x078
+@@ -514,7 +514,7 @@
+ 		.hw.init	= CLK_HW_INIT_PARENTS("spdif",
+ 						      audio_parents,
+ 						      &ccu_div_ops,
+-						      0),
++						      CLK_SET_RATE_PARENT),
+ 	},
+ };
+ 

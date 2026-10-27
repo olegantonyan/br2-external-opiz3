@@ -1,0 +1,5 @@
+config BR2_PACKAGE_HCIATTACH_OPI
+	bool "hciattach-opi"
+	help
+	  Orange Pi hciattach with Unisoc "sprd" (UWE5622) support,
+	  taken from orangepi-build hcitools.

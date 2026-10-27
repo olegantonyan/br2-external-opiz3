@@ -1,0 +1,40 @@
+From: OPIZ3 br2-external
+Subject: arm64: dts: allwinner: orangepi-zero3: enable S/PDIF output
+
+S/PDIF TX on PH4 (26-pin header pin 5) via simple-audio-card + spdif-dit.
+---
+--- a/arch/arm64/boot/dts/allwinner/sun50i-h618-orangepi-zero3.dts
++++ b/arch/arm64/boot/dts/allwinner/sun50i-h618-orangepi-zero3.dts
+@@ -11,6 +11,24 @@
+ / {
+ 	model = "OrangePi Zero3";
+ 	compatible = "xunlong,orangepi-zero3", "allwinner,sun50i-h618";
++
++	spdif_out: spdif-out {
++		compatible = "linux,spdif-dit";
++		#sound-dai-cells = <0>;
++	};
++
++	sound-spdif {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "SPDIF";
++
++		simple-audio-card,cpu {
++			sound-dai = <&spdif>;
++		};
++
++		simple-audio-card,codec {
++			sound-dai = <&spdif_out>;
++		};
++	};
+ };
+ 
+ &cpu0 {
+@@ -99,3 +117,7 @@
+ 	vcc-ph-supply = <&reg_dldo1>;
+ 	vcc-pi-supply = <&reg_dldo1>;
+ };
++
++&spdif {
++	status = "okay";
++};

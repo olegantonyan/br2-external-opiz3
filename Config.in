@@ -1,0 +1,2 @@
+source "$BR2_EXTERNAL_OPIZ3_PATH/package/uwe5622/Config.in"
+source "$BR2_EXTERNAL_OPIZ3_PATH/package/hciattach-opi/Config.in"

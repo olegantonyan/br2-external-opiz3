@@ -1,0 +1,34 @@
+#!/bin/sh
+
+wait_for() {
+	i=0
+	while [ ! -e "$1" ] && [ $i -lt 20 ]; do
+		sleep 0.5
+		i=$((i + 1))
+	done
+	[ -e "$1" ]
+}
+
+start() {
+	printf "Mounting /nvm: "
+	if wait_for /sys/class/mtd/mtd0 && mount -t jffs2 -o noatime mtd:spi0.0 /nvm; then
+		echo "OK"
+	else
+		mount -t tmpfs -o mode=0755 tmpfs /nvm
+		echo "FAIL (tmpfs)"
+	fi
+	mkdir -p -m 700 /nvm/dropbear /nvm/bluetooth
+	[ -e /nvm/wpa_supplicant.conf ] || install -m 600 /etc/wpa_supplicant.conf.template /nvm/wpa_supplicant.conf
+}
+
+stop() {
+	printf "Unmounting /nvm: "
+	umount /nvm && echo "OK" || echo "FAIL"
+}
+
+case "$1" in
+	start) start ;;
+	stop) stop ;;
+	restart|reload) stop; start ;;
+	*) echo "Usage: $0 {start|stop|restart}"; exit 1 ;;
+esac

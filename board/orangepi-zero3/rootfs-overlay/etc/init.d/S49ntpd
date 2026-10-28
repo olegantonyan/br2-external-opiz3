@@ -1,0 +1,20 @@
+#!/bin/sh
+
+PIDFILE=/var/run/ntpd.pid
+
+start() {
+	printf "Starting ntpd: "
+	start-stop-daemon -S -q -b -m -p $PIDFILE -x /usr/sbin/ntpd -- -n -p pool.ntp.org && echo "OK" || echo "FAIL"
+}
+
+stop() {
+	printf "Stopping ntpd: "
+	start-stop-daemon -K -q -p $PIDFILE && rm -f $PIDFILE && echo "OK" || echo "FAIL"
+}
+
+case "$1" in
+	start) start ;;
+	stop) stop ;;
+	restart|reload) stop; start ;;
+	*) echo "Usage: $0 {start|stop|restart}"; exit 1 ;;
+esac

@@ -1,0 +1,19 @@
+From: OPIZ3 br2-external
+Subject: arm64: dts: allwinner: orangepi-zero3: add vdd-cpu ramp delay
+
+The AXP313A DCDC2 regulator has no ramp delay in the driver or DT, so
+cpufreq raises the CPU clock right after the voltage write while the
+rail is still slewing. With cpufreq active this caused random oopses
+(faults on non-memory instructions) and RCU stalls. Use the same
+200 uV/us as the BigTreeTech CB1 (H616 + AXP313A).
+---
+--- a/arch/arm64/boot/dts/allwinner/sun50i-h618-orangepi-zero3.dts
++++ b/arch/arm64/boot/dts/allwinner/sun50i-h618-orangepi-zero3.dts
+@@ -97,6 +97,7 @@
+ 				regulator-always-on;
+ 				regulator-min-microvolt = <810000>;
+ 				regulator-max-microvolt = <1100000>;
++				regulator-ramp-delay = <200>;
+ 				regulator-name = "vdd-cpu";
+ 			};
+ 

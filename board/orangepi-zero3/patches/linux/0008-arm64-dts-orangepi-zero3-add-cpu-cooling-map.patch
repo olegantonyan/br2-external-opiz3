@@ -1,0 +1,25 @@
+From: OPIZ3 br2-external
+Subject: arm64: dts: allwinner: orangepi-zero3: add CPU cooling map
+
+The H616 cpu-thermal zone defines passive trips but no cooling-maps
+(still true in v7.0), so cpufreq never throttles: under sustained load
+the CPU sat at 1416 MHz and 86 C. Bind cpu0-3 to the 70 C trip.
+---
+--- a/arch/arm64/boot/dts/allwinner/sun50i-h618-orangepi-zero3.dts
++++ b/arch/arm64/boot/dts/allwinner/sun50i-h618-orangepi-zero3.dts
+@@ -122,3 +122,15 @@
+ &spdif {
+ 	status = "okay";
+ };
++
++&{/thermal-zones/cpu-thermal} {
++	cooling-maps {
++		map0 {
++			trip = <&cpu_target>;
++			cooling-device = <&cpu0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
++					 <&cpu1 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
++					 <&cpu2 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
++					 <&cpu3 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
++		};
++	};
++};

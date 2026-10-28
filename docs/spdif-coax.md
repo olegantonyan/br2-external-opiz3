@@ -1,6 +1,6 @@
 # S/PDIF coax output — Orange Pi Zero 3
 
-The H618 has a native S/PDIF transmitter, so no Digi+/WM8804, no I2S, no I2C.
+The H618 has a native S/PDIF transmitter; no external transmitter chip, I2S or I2C needed.
 Mainline driver `sun4i-spdif` (`allwinner,sun50i-h616-spdif`), enabled by
 `board/orangepi-zero3/patches/linux/0003-arm64-dts-orangepi-zero3-enable-spdif-out.patch`.
 Correct sample rates also need the audio PLL patches:
@@ -50,24 +50,3 @@ aplay -D hw:SPDIF file.wav
 Without the circuit, a scope on pin 5 during playback shows a biphase-mark
 stream (~3.07 MHz cell rate at 48 kHz).
 
-## Why not the Digi+ (WM8804) board
-
-The Digi+ takes I2S from the host and is configured over I2C. On H616/H618 the
-I2S controllers sit behind the AHUB audio hub, which mainline Linux does not
-support (still true in v7.0); only the vendor BSP / Armbian's `sunxi_v2` port
-drives it. The on-chip S/PDIF makes the WM8804 redundant anyway.
-
-Fallback pin map, if the AHUB route is ever revisited (functions per mainline
-`pinctrl-sun50i-h616.c`; Digi+ numbers are Raspberry Pi header pins):
-
-| Signal         | Digi+ / RPi pin | OPi Zero 3 pin | SoC function    |
-|----------------|-----------------|----------------|-----------------|
-| BCLK           | 12              | 23             | PH6 i2s3 BCLK   |
-| LRCK           | 35              | 19             | PH7 i2s3 SYNC   |
-| DATA (to WM)   | 40              | 21             | PH8 i2s3 DOUT0  |
-| I2C SDA        | 3               | 10             | PH3 i2c2 SDA    |
-| I2C SCL        | 5               | 8              | PH2 i2c2 SCK    |
-| 5 V / GND      | 2 / 6           | 2 / 6          | —               |
-
-MCLK (PH5, pin 3) is not needed: the WM8804 has its own crystal. I2C2 on
-PH2/PH3 replaces UART5 and does not collide with I2S3. WM8804 I2C address: 0x3b.

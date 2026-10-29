@@ -1,0 +1,92 @@
+name: build
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - configs/**
+      - board/**
+      - package/**
+      - Config.in
+      - external.mk
+      - external.desc
+      - .github/workflows/build.yml
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  BR_VERSION: 2026.08.1
+  BR_SHA256: 34fb7bea8a213ffde39cc02e61703391560f26e0850f03138c722d0b09880f2b
+  DEFCONFIG: orangepi_zero3_wifi_defconfig
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare work dir
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          if [ -d /mnt ] && [ "$(df --output=avail -BG /mnt | tail -1 | tr -dc 0-9)" -gt 30 ]; then WORK=/mnt/work; else WORK=$HOME/work; fi
+          sudo mkdir -p "$WORK" && sudo chown "$USER" "$WORK"
+          echo "WORK=$WORK" >> "$GITHUB_ENV"
+          echo "BR2_DL_DIR=$WORK/dl" >> "$GITHUB_ENV"
+          df -h / "$WORK"
+
+      - name: Install host packages
+        run: sudo apt-get update && sudo apt-get install -y build-essential file wget cpio unzip rsync bc
+
+      - name: Restore download cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.WORK }}/dl
+          key: dl-${{ env.BR_VERSION }}-${{ hashFiles('configs/**', 'package/**', 'board/orangepi-zero3/patches/uboot/**') }}
+          restore-keys: dl-${{ env.BR_VERSION }}-
+
+      - name: Fetch Buildroot
+        working-directory: ${{ env.WORK }}
+        run: |
+          mkdir -p dl
+          T=dl/buildroot-$BR_VERSION.tar.xz
+          [ -f "$T" ] || wget -q -O "$T" https://buildroot.org/downloads/buildroot-$BR_VERSION.tar.xz
+          echo "$BR_SHA256  $T" | sha256sum -c -
+          tar xf "$T"
+
+      - name: Build
+        working-directory: ${{ env.WORK }}
+        run: |
+          make -C buildroot-$BR_VERSION O=$WORK/output BR2_EXTERNAL=$GITHUB_WORKSPACE $DEFCONFIG
+          make -C output > build.log 2>&1 || { tail -200 build.log; exit 1; }
+          df -h "$WORK"
+
+      - name: Upload build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: ${{ env.WORK }}/build.log
+
+      - name: Collect release assets
+        working-directory: ${{ env.WORK }}/output/images
+        run: |
+          mkdir -p $WORK/release
+          xz -T0 -c sdcard.img > $WORK/release/sdcard.img.xz
+          cp u-boot-sunxi-with-spl.bin Image allwinner/sun50i-h618-orangepi-zero3.dtb $WORK/release/
+          cd $WORK/release && sha256sum * > SHA256SUMS
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=build-${{ github.run_number }}
+          git log -1 --format='%s%n%n%b' > $WORK/notes.md
+          echo "Commit: ${{ github.sha }}" >> $WORK/notes.md
+          gh release create "$TAG" $WORK/release/* --target "${{ github.sha }}" --title "$TAG (${GITHUB_SHA::7})" --notes-file $WORK/notes.md

@@ -2,13 +2,12 @@
 
 ## Layout
 
-Three sibling directories; only this one is versioned:
+Two sibling directories; only this one is versioned:
 
 | Directory              | Role                                                        |
 |------------------------|-------------------------------------------------------------|
-| `buildroot-2026.08.1/` | Upstream Buildroot, unmodified. `make` runs here.           |
-| `br2-external-opiz3/`  | This tree: `BR2_EXTERNAL` named `OPIZ3` (`external.desc`).  |
-| `output-opiz3/`        | Build output (`O=`). ~16 GB after a full build.             |
+| `buildroot-2026.08.1/` | Upstream Buildroot, unmodified.                             |
+| `br2-external-opiz3/`  | This tree: `BR2_EXTERNAL` named `OPIZ3` (`external.desc`). Build output goes to its git-ignored `output/` (`O=`), ~16 GB. |
 
 ## Host setup
 
@@ -24,26 +23,25 @@ tar xf buildroot-2026.08.1.tar.xz
 ## Build
 
 ```
-cd buildroot-2026.08.1
-make O=$PWD/../output-opiz3 BR2_EXTERNAL=$PWD/../br2-external-opiz3 orangepi_zero3_wifi_defconfig
-make O=$PWD/../output-opiz3
+cd br2-external-opiz3
+make -C ../buildroot-2026.08.1 O=$PWD/output BR2_EXTERNAL=$PWD orangepi_zero3_wifi_defconfig
+make -C output
 ```
 
-- `O=` selects the output directory (default would be `buildroot-2026.08.1/output/`).
-- `BR2_EXTERNAL=` attaches this tree. Buildroot stores it in `output-opiz3/.br2-external.mk`, so later commands only need `O=`.
-- The defconfig step writes `output-opiz3/.config`; the second `make` builds everything.
-- `cd output-opiz3 && make` is equivalent (Buildroot generates a wrapper Makefile there).
+- `O=` selects the output directory (default would be `buildroot-2026.08.1/output/`). It must be absolute and cannot be moved after a build: generated files hold absolute paths.
+- `BR2_EXTERNAL=` attaches this tree. Buildroot stores it in `output/.br2-external.mk`, so later commands only need `make -C output`.
+- The defconfig step writes `output/.config` and a wrapper `output/Makefile`; `make -C output` builds everything.
 - Downloads are cached in `buildroot-2026.08.1/dl/` (`BR2_DL_DIR`); `BR2_JLEVEL=0` uses all cores.
 - `BR2_DOWNLOAD_FORCE_CHECK_HASHES=y`: every downloaded source needs a `.hash` (custom U-Boot version: `board/orangepi-zero3/patches/uboot/uboot.hash`).
 
 ## Output
 
-`output-opiz3/images/`:
+`output/images/`:
 
 - `sdcard.img` — write to a microSD card, e.g. `dd if=sdcard.img of=/dev/sdX bs=4M conv=fsync`
 - `Image`, `allwinner/*.dtb`, `rootfs.ext2`, `u-boot-sunxi-with-spl.bin`
 
-Other `output-opiz3/` dirs: `build/` (per-package source/build trees), `host/` (toolchain), `target/` (rootfs before packing).
+Other `output/` dirs: `build/` (per-package source/build trees), `host/` (toolchain), `target/` (rootfs before packing).
 
 ## What this tree contributes
 
@@ -58,7 +56,7 @@ Other `output-opiz3/` dirs: `build/` (per-package source/build trees), `host/` (
 
 ## Partial rebuilds
 
-Run from `buildroot-2026.08.1` with the same `O=`, then a plain `make` to regenerate `sdcard.img`.
+Run as `make -C output <target>`, then `make -C output` to regenerate `sdcard.img`.
 
 | Changed                     | Command                                        |
 |-----------------------------|------------------------------------------------|

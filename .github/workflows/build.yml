@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Prepare work dir
         run: |
@@ -45,7 +45,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y build-essential file wget cpio unzip rsync bc
 
       - name: Restore download cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.WORK }}/dl
           key: dl-${{ env.BR_VERSION }}-${{ hashFiles('configs/**', 'package/**', 'board/orangepi-zero3/patches/uboot/**') }}
@@ -64,12 +64,13 @@ jobs:
         working-directory: ${{ env.WORK }}
         run: |
           make -C buildroot-$BR_VERSION O=$WORK/output BR2_EXTERNAL=$GITHUB_WORKSPACE $DEFCONFIG
-          make -C output > build.log 2>&1 || { tail -200 build.log; exit 1; }
+          set -o pipefail
+          make -C output 2>&1 | tee build.log | grep --line-buffered '^>>>' || { tail -200 build.log; exit 1; }
           df -h "$WORK"
 
       - name: Upload build log
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-log
           path: ${{ env.WORK }}/build.log

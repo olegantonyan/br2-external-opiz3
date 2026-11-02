@@ -1,0 +1,20 @@
+/dts-v1/;
+/plugin/;
+
+&{/aliases} {
+	serial2 = "/soc/serial@5000800";
+};
+
+&pio {
+	opiz3_uart2_pins: opiz3-uart2-pins {
+		pins = "PH5", "PH6", "PH7", "PH8";
+		function = "uart2";
+	};
+};
+
+&uart2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&opiz3_uart2_pins>;
+	uart-has-rtscts;
+	status = "okay";
+};

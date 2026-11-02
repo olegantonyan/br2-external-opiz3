@@ -1,0 +1,5 @@
+#!/bin/sh
+
+[ "$1" = start ] || exit 0
+printf "Unmuting codec line out: "
+amixer -q -c Codec set "Line Out" 25 unmute 2>/dev/null && amixer -q -c Codec set DAC 63 unmute && echo "OK" || echo "FAIL"

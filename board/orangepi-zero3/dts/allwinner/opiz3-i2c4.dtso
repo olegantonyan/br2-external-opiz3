@@ -1,0 +1,20 @@
+/dts-v1/;
+/plugin/;
+
+&{/aliases} {
+	i2c4 = "/soc/i2c@5003000";
+};
+
+&pio {
+	opiz3_i2c4_pins: opiz3-i2c4-pins {
+		pins = "PH6", "PH7";
+		function = "i2c4";
+		bias-pull-up;
+	};
+};
+
+&i2c4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&opiz3_i2c4_pins>;
+	status = "okay";
+};

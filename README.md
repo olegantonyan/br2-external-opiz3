@@ -8,9 +8,10 @@ Buildroot external tree for the Orange Pi Zero 3 (Allwinner H618) on mainline Li
 - Gigabit Ethernet (YT8531 PHY), stable across warm reboots
 - S/PDIF output on header pin 5, exact 32–192 kHz rates — wiring in [docs/spdif-coax.md](docs/spdif-coax.md)
 - HDMI text console (fbcon, login on tty1)
+- Header peripherals as DT overlays: UART5, I2C4 by default; I2C2, UART2, SPI1 (spidev) selectable; USB2/USB3, IR receiver and line out on the 13-pin header — pin map in [docs/header.md](docs/header.md)
 - cpufreq 480–1416 MHz with thermal throttling at 70 °C
 - Read-only rootfs, 0 SD writes; persistent config on the onboard SPI NOR (`/nvm`, JFFS2)
-- Dropbear SSH (key auth), BusyBox ntpd, alsa-utils, bluez5 tools, stress-ng
+- Dropbear SSH (key auth), BusyBox ntpd, alsa-utils, bluez5 tools, i2c-tools, stress-ng
 
 ## Build
 

@@ -1,0 +1,19 @@
+/dts-v1/;
+/plugin/;
+
+&{/aliases} {
+	serial5 = "/soc/serial@5001400";
+};
+
+&pio {
+	opiz3_uart5_pins: opiz3-uart5-pins {
+		pins = "PH2", "PH3";
+		function = "uart5";
+	};
+};
+
+&uart5 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&opiz3_uart5_pins>;
+	status = "okay";
+};

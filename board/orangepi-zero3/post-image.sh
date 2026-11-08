@@ -6,7 +6,7 @@ W="$BIN/nor"
 
 # Must match patches/linux/0009 (DT partitions), uboot.fragment (bootcmd) and flash.sh.
 UBOOT_OFF=0x000000 UBOOT_SIZE=0x0f0000
-SYSTEM_OFF=0x100000 SYSTEM_SIZE=0xd00000
+SYSTEM_OFF=0x100000 SYSTEM_SIZE=0xe80000
 FLASH_SIZE=0x1000000
 
 rm -rf "$W"

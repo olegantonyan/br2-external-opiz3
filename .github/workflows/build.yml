@@ -11,6 +11,7 @@ on:
       - external.mk
       - external.desc
       - flash.sh
+      - stress.sh
       - .github/workflows/build.yml
   workflow_dispatch:
 

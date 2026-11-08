@@ -55,10 +55,11 @@ Other `output/` dirs: `build/` (per-package source/build trees), `host/` (toolch
   - `patches/linux/`, `patches/uboot/` — via `BR2_GLOBAL_PATCH_DIR`, applied with `patch -F0` (no fuzz)
   - `rootfs-overlay/` — firmware, init scripts, network config, SSH key
   - `device_table.txt` — file modes (the overlay copy does not keep them)
-  - `post-build.sh` — symlinks persistent config into `/nvm`
+  - `post-build.sh` — symlinks persistent config into `/nvm`; deletes files nothing links or runs (glib GIO/GObject, extra libnl/pcre2 libs, ALSA sample WAVs, libatomic)
   - `post-image.sh` — builds `nor-system.itb` (LZMA kernel, DTB, overlays, `rootfs.cpio.xz`) and `nor.img`; fails if an image outgrows its partition
 - `external.mk` — also keeps `/boot` (kernel, extlinux) out of the initramfs
 - `flash.sh` — host-side NOR update over SSH
+- `stress.sh` — builds a static stress-ng with the Buildroot toolchain into `output/stress-ng/`, runs it on the board from `/tmp`
 
 ## Partial rebuilds
 
@@ -80,7 +81,7 @@ Patches apply only on a fresh extract, hence `dirclean`. `uwe5622` builds agains
 
 ## First boot
 
-- Login: `root` / `root` (serial, or SSH with the key in `rootfs-overlay/root/.ssh/authorized_keys`).
+- Login: `root` / `root` (serial, or SSH with the key in `rootfs-overlay/root/.ssh/authorized_keys`): `ssh root@br2-external-opiz3.local` (mDNS; hostname from `BR2_TARGET_GENERIC_HOSTNAME`).
 - From NOR the rootfs is an initramfs in RAM: writable, but changes are lost at reboot. Persistent state is on the NOR at `/nvm`.
 - To wipe `/nvm` (it is reformatted empty on the next mount): `/etc/init.d/S00nvm stop; flash_erase -j /dev/$(awk -F: '/"nvm"/ {print $1}' /proc/mtd) 0 0; reboot`. Never erase `/dev/mtd0`: it is the whole chip.
 - WiFi: edit `/etc/wpa_supplicant.conf` (→ `/nvm`, survives reflashing), then `ifdown wlan0; ifup wlan0`.

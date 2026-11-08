@@ -13,7 +13,9 @@ Buildroot external tree for the Orange Pi Zero 3 (Allwinner H618) on mainline Li
 - cpufreq 480–1416 MHz with thermal throttling at 70 °C
 - Board-only kernel config: everything built in except the UWE5622 modules
 - Persistent config (WiFi, SSH host key, BT pairings) on the NOR `nvm` partition (`/nvm`, JFFS2)
-- Dropbear SSH (key auth), BusyBox ntpd, alsa-utils, bluez5 tools, i2c-tools, stress-ng
+- mDNS: reachable as `br2-external-opiz3.local` on Ethernet and WiFi (mdnsd, also advertises SSH)
+- Dropbear SSH (key auth), BusyBox ntpd, alsa-utils, bluetoothctl, i2c-tools
+- Stress test without stress-ng in the image: `./stress.sh br2-external-opiz3.local --cpu 4 --vm 2 --vm-bytes 25% --verify -t 10m --metrics-brief` builds a static binary once and runs it from `/tmp` (RAM)
 
 ## Build
 
@@ -34,7 +36,7 @@ Results in `output/images/` (`output/` is git-ignored):
 
 Setup and partial rebuilds: [docs/build.md](docs/build.md).
 
-CI: pushes to `master` that touch `configs/`, `board/`, `package/`, `flash.sh` or the tree's Kconfig/make files build everything and publish a `build-<n>` release (`nor-system.itb`, `u-boot-sunxi-with-spl.bin`, `nor.img.xz`, `sdcard.img.xz`, `flash.sh`, kernel, DTB, `SHA256SUMS`).
+CI: pushes to `master` that touch `configs/`, `board/`, `package/`, `flash.sh`, `stress.sh` or the tree's Kconfig/make files build everything and publish a `build-<n>` release (`nor-system.itb`, `u-boot-sunxi-with-spl.bin`, `nor.img.xz`, `sdcard.img.xz`, `flash.sh`, kernel, DTB, `SHA256SUMS`).
 
 ## Flash
 
@@ -44,30 +46,30 @@ NOR layout (also in the DT, `patches/linux/0009`):
 |-----------|--------|------|----------|
 | `u-boot` | 0x000000 | 960 KiB | SPL + TF-A + U-Boot |
 | `env` | 0x0f0000 | 64 KiB | boot settings written by `fw_setenv` |
-| `system` | 0x100000 | 13 MiB | `nor-system.itb` |
-| `nvm` | 0xe00000 | 2 MiB | JFFS2, `/nvm` |
+| `system` | 0x100000 | 14.5 MiB | `nor-system.itb` |
+| `nvm` | 0xf80000 | 512 KiB | JFFS2, `/nvm` |
 
 ### Update a running board
 
 ```
-./flash.sh BOARD_IP                      # u-boot + system from output/images
-./flash.sh BOARD_IP system               # system only
-./flash.sh -d ~/Downloads/build-42 BOARD_IP   # files from a CI release
+./flash.sh br2-external-opiz3.local                      # u-boot + system from output/images
+./flash.sh br2-external-opiz3.local system               # system only
+./flash.sh -d ~/Downloads/build-42 br2-external-opiz3.local   # files from a CI release
 ```
 
-`flash.sh` copies each image over SSH, skips partitions that already match, writes with `flashcp`, verifies by reading back, then reboots (`-n`: don't). `env` and `nvm` are never touched. Safe on a running board: Linux runs from RAM and does not use the NOR except `/nvm`. If verification fails, don't reboot: run it again (or recover below).
+The host needs mDNS name resolution (nss-mdns/Avahi, on by default on most desktops); an IP address works too. `flash.sh` copies each image over SSH, skips partitions that already match, writes with `flashcp`, verifies by reading back, then reboots (`-n`: don't). `env` and `nvm` are never touched. Safe on a running board: Linux runs from RAM and does not use the NOR except `/nvm`. If verification fails, don't reboot: run it again (or recover below).
 
 ### First install, or the board does not come up
 
 The boot ROM tries the SD card before the NOR, so a recovery card always works, whatever is on the NOR.
 
 1. Write `sdcard.img` to a microSD card: `xz -dc sdcard.img.xz | sudo dd of=/dev/sdX bs=4M conv=fsync` (or `dd if=sdcard.img …`).
-2. Insert it and power on. The board boots Linux from the SD and gets its address by DHCP as usual.
+2. Insert it and power on. The board boots Linux from the SD and gets its address by DHCP as usual; it answers to `br2-external-opiz3.local`.
 3. Write the NOR:
-   - Board already had this layout (keeps `/nvm`): `./flash.sh -n BOARD_IP`
+   - Board already had this layout (keeps `/nvm`): `./flash.sh -n br2-external-opiz3.local`
    - First install, or the NOR is unknown/corrupt (wipes `/nvm`: WiFi config, SSH host key, BT pairings):
      ```
-     cat output/images/nor.img | ssh root@BOARD_IP 'cat > /tmp/nor.img && /etc/init.d/S00nvm stop && flashcp -v /tmp/nor.img /dev/mtd0'
+     cat output/images/nor.img | ssh root@br2-external-opiz3.local 'cat > /tmp/nor.img && /etc/init.d/S00nvm stop && flashcp -v /tmp/nor.img /dev/mtd0'
      ```
 4. Power off, remove the card, power on.
 

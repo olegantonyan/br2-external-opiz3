@@ -1,0 +1,18 @@
+#!/bin/sh
+
+M=/sdcard
+B=/sys/class/block/$MDEV
+
+if [ "$ACTION" = remove ]; then
+	grep -q "^/dev/$MDEV $M " /proc/mounts && umount -l $M
+	exit 0
+fi
+
+[ -e $B/partition ] || ! ls -d $B/${MDEV}p* >/dev/null 2>&1 || exit 0
+mountpoint -q $M && exit 0
+[ "$(mountpoint -d /)" = "$(cat $B/dev)" ] && exit 0
+if mount -o noatime /dev/$MDEV $M 2>/dev/null; then
+	logger -t sdcard "/dev/$MDEV mounted on $M"
+else
+	logger -t sdcard "/dev/$MDEV: no mountable filesystem"
+fi

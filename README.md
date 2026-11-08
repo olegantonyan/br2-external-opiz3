@@ -13,6 +13,7 @@ Buildroot external tree for the Orange Pi Zero 3 (Allwinner H618) on mainline Li
 - cpufreq 480–1416 MHz with thermal throttling at 70 °C
 - Board-only kernel config: everything built in except the UWE5622 modules
 - Persistent config (WiFi, SSH host key, BT pairings) on the NOR `nvm` partition (`/nvm`, JFFS2)
+- microSD as storage: mounted on `/sdcard` when inserted (ext4, FAT, exFAT; first mountable partition or the whole card), unmounted on removal. The card must not carry a bootloader (e.g. an old `sdcard.img`), or the board boots from it instead of the NOR
 - mDNS: reachable as `br2-external-opiz3.local` on Ethernet and WiFi (mdnsd, also advertises SSH)
 - Dropbear SSH (key auth), BusyBox ntpd, alsa-utils, bluetoothctl, i2c-tools
 - Stress test without stress-ng in the image: `./stress.sh br2-external-opiz3.local --cpu 4 --vm 2 --vm-bytes 25% --verify -t 10m --metrics-brief` builds a static binary once and runs it from `/tmp` (RAM)

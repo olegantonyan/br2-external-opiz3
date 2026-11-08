@@ -2,3 +2,5 @@
 /root/.ssh	d	700	0	0	-	-	-	-	-
 /root/.ssh/authorized_keys	f	600	0	0	-	-	-	-	-
 /nvm	d	755	0	0	-	-	-	-	-
+/sdcard	d	755	0	0	-	-	-	-	-
+/usr/sbin/sdcard-mount	f	755	0	0	-	-	-	-	-

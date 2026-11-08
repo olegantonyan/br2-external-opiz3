@@ -1,0 +1,4 @@
+# CONFIG_ENV_IS_IN_SPI_FLASH is not set
+# CONFIG_ENV_IS_IN_FAT is not set
+CONFIG_ENV_IS_NOWHERE=y
+CONFIG_BOOTCOMMAND="if env exists mmc_bootdev || env exists fel_booted; then run distro_bootcmd; fi; setenv overlays uart5 i2c4 usb23 ir; sf probe 0 && sf read 0x50000000 0xf0000 0x10000 && env import -c 0x50000000 0x10000 overlays extra_bootargs; setenv cfg conf-base; for o in ${overlays}; do setenv cfg ${cfg}#ov-${o}; done; setenv bootargs console=tty1 console=${console} quiet panic=10 ${extra_bootargs}; sf read 0x50000000 0x100000 0x40 && fdt addr -q 0x50000000 && fdt header get fitsize totalsize && sf read 0x50000000 0x100000 ${fitsize} && bootm 0x50000000#${cfg}; bootm 0x50000000#conf-base; run distro_bootcmd"

@@ -1,8 +1,8 @@
 # Header peripherals
 
-Functions are DT overlays (`board/orangepi-zero3/dts/allwinner/opiz3-*.dtso`), installed as `/boot/allwinner/opiz3-*.dtbo` and applied by U-Boot from the `fdtoverlays` line in `/boot/extlinux/extlinux.conf`.
+Functions are DT overlays (`board/orangepi-zero3/dts/allwinner/opiz3-*.dtso`), packed into `nor-system.itb` and applied by U-Boot at boot.
 
-Default: `uart5 i2c4 usb23 ir` (set by `OVERLAYS` in `board/orangepi-zero3/post-build.sh`).
+Default: `uart5 i2c4 usb23 ir` (NOR boot: `uboot.fragment`; recovery SD: `OVERLAYS` in `board/orangepi-zero3/post-build.sh`).
 
 ## 26-pin header
 
@@ -46,16 +46,16 @@ Notes:
 - The codec is ALSA card 0, so `/etc/asound.conf` makes `SPDIF` the default device.
 - I2C buses with an alias keep their number (`i2c-2`, `i2c-4`); the PMIC bus and HDMI DDC get the next free numbers.
 - `/dev/ttyS0`–`ttyS5` always exist; `ttyS5`/`ttyS2` only work with their overlay.
-- `spi1` also aliases `spi0`, otherwise the NOR would become `spi2.0` and `/nvm` (`mtd:spi0.0`) would not mount.
+- `spi1` also aliases `spi0`, otherwise the NOR would become `spi2.0`.
 - Hardware PWM (PH2/PH3) is not offered: mainline has no H616 PWM driver.
 
 ## Switching
 
 ```
-mount -o remount,rw /
-vi /boot/extlinux/extlinux.conf
-mount -o remount,ro /
+fw_setenv overlays "uart5 i2c2 spi1"
 reboot
 ```
 
-Edit the `fdtoverlays` line, e.g. `fdtoverlays /boot/allwinner/opiz3-i2c2.dtbo /boot/allwinner/opiz3-spi1.dtbo`. U-Boot prints `Failed to apply overlay` on the serial console if one is broken; the kernel then boots with the base DTB alone.
+`fw_setenv overlays` (no value) restores the default. The list is stored in the NOR `env` partition. U-Boot boots the base DTB without overlays if a name is unknown or an overlay fails to apply (message on the serial console).
+
+Booted from the recovery SD, overlays come from the `fdtoverlays` line in `/boot/extlinux/extlinux.conf` instead (`mount -o remount,rw /` to edit).

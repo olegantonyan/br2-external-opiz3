@@ -1,17 +1,17 @@
 #!/bin/sh
 
-wait_for() {
+wait_mtd() {
 	i=0
-	while [ ! -e "$1" ] && [ $i -lt 20 ]; do
+	while ! grep -q "\"$1\"" /proc/mtd && [ $i -lt 20 ]; do
 		sleep 0.5
 		i=$((i + 1))
 	done
-	[ -e "$1" ]
+	grep -q "\"$1\"" /proc/mtd
 }
 
 start() {
 	printf "Mounting /nvm: "
-	if wait_for /sys/class/mtd/mtd0 && mount -t jffs2 -o noatime mtd:spi0.0 /nvm; then
+	if wait_mtd nvm && mount -t jffs2 -o noatime mtd:nvm /nvm; then
 		echo "OK"
 	else
 		mount -t tmpfs -o mode=0755 tmpfs /nvm

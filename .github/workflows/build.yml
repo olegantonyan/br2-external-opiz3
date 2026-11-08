@@ -10,6 +10,7 @@ on:
       - Config.in
       - external.mk
       - external.desc
+      - flash.sh
       - .github/workflows/build.yml
   workflow_dispatch:
 
@@ -80,7 +81,8 @@ jobs:
         run: |
           mkdir -p $WORK/release
           xz -T0 -c sdcard.img > $WORK/release/sdcard.img.xz
-          cp u-boot-sunxi-with-spl.bin Image allwinner/sun50i-h618-orangepi-zero3.dtb $WORK/release/
+          xz -T0 -c nor.img > $WORK/release/nor.img.xz
+          cp nor-system.itb u-boot-sunxi-with-spl.bin Image allwinner/sun50i-h618-orangepi-zero3.dtb $GITHUB_WORKSPACE/flash.sh $WORK/release/
           cd $WORK/release && sha256sum * > SHA256SUMS
 
       - name: Publish release

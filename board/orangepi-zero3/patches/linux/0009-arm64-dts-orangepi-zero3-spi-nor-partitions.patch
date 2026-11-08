@@ -1,0 +1,41 @@
+From: OPIZ3 <opiz3@localhost>
+Subject: [PATCH] arm64: dts: orangepi-zero3: SPI NOR partitions for NOR boot
+
+Layout: u-boot 960K, env 64K, system 13M (FIT: kernel, DTBs, initramfs), nvm 2M.
+---
+--- a/arch/arm64/boot/dts/allwinner/sun50i-h618-orangepi-zero3.dts
++++ b/arch/arm64/boot/dts/allwinner/sun50i-h618-orangepi-zero3.dts
+@@ -143,3 +143,33 @@
+ 		};
+ 	};
+ };
++
++&spi0 {
++	flash@0 {
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "u-boot";
++				reg = <0x000000 0x0f0000>;
++			};
++
++			partition@f0000 {
++				label = "env";
++				reg = <0x0f0000 0x010000>;
++			};
++
++			partition@100000 {
++				label = "system";
++				reg = <0x100000 0xd00000>;
++			};
++
++			partition@e00000 {
++				label = "nvm";
++				reg = <0xe00000 0x200000>;
++			};
++		};
++	};
++};

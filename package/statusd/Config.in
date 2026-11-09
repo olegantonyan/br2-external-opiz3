@@ -1,0 +1,7 @@
+config BR2_PACKAGE_STATUSD
+	bool "statusd"
+	depends on BR2_TOOLCHAIN_HAS_THREADS # libdrm
+	select BR2_PACKAGE_LIBDRM
+	help
+	  HDMI status screen drawn by the CPU on KMS dumb buffers.
+	  Follows hotplug and resolution changes.

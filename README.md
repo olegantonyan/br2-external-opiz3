@@ -8,7 +8,7 @@ Buildroot external tree for the Orange Pi Zero 3 (Allwinner H618) on mainline Li
 - WiFi and Bluetooth on the onboard UWE5622 (out-of-tree driver + `hciattach-opi`)
 - Gigabit Ethernet (YT8531 PHY), stable across warm reboots
 - S/PDIF output on header pin 5, exact 32–192 kHz rates — wiring in [docs/spdif-coax.md](docs/spdif-coax.md)
-- HDMI text console (fbcon, login on tty1)
+- HDMI status screen (`statusd`): CPU, memory, temperatures, network/WiFi, audio, storage/USB; follows hotplug and resolution changes; Esc on a USB keyboard opens a console login on tty1, logout returns to the status screen — see [docs/display.md](docs/display.md)
 - Header peripherals as DT overlays: UART5, I2C4 by default; I2C2, UART2, SPI1 (spidev) selectable; USB2/USB3, IR receiver and line out on the 13-pin header — pin map in [docs/header.md](docs/header.md)
 - cpufreq 480–1416 MHz with thermal throttling at 70 °C
 - Board-only kernel config: everything built in except the UWE5622 modules

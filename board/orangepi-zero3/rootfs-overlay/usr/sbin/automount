@@ -1,0 +1,37 @@
+#!/bin/sh
+
+B=/sys/class/block/$MDEV
+umask 022
+
+if [ "$ACTION" = remove ]; then
+	M=$(awk -v d=/dev/$MDEV '$1 == d {print $2}' /proc/mounts)
+	[ -n "$M" ] || exit 0
+	umount -l $M
+	[ $M = /sdcard ] || rmdir $M
+	exit 0
+fi
+
+[ -e $B/partition ] || ! ls -d $B/$MDEV* >/dev/null 2>&1 || exit 0
+grep -q "^/dev/$MDEV " /proc/mounts && exit 0
+[ "$(mountpoint -d /)" = "$(cat $B/dev)" ] && exit 0
+case $MDEV in
+mmcblk*)
+	M=/sdcard
+	mountpoint -q $M && exit 0
+	;;
+*)
+	I=$(blkid /dev/$MDEV)
+	L=$(echo "$I" | sed -n 's/.* LABEL="\([^"]*\)".*/\1/p' | tr -c 'A-Za-z0-9._\n-' _)
+	U=$(echo "$I" | sed -n 's/.* UUID="\([^"]*\)".*/\1/p')
+	mountpoint -q /media || mount -t tmpfs -o mode=755,size=64k media /media
+	[ -n "$L" ] && [ ! -e "/media/$L" ] && M=/media/$L || M=/media/${U:-$MDEV}
+	[ -e $M ] && M=/media/$MDEV
+	mkdir -p $M
+	;;
+esac
+if mount -o noatime /dev/$MDEV $M 2>/dev/null; then
+	logger -t automount "/dev/$MDEV mounted on $M"
+else
+	[ $M = /sdcard ] || rmdir $M
+	logger -t automount "/dev/$MDEV: no mountable filesystem"
+fi

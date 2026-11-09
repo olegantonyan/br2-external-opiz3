@@ -12,8 +12,8 @@ Buildroot external tree for the Orange Pi Zero 3 (Allwinner H618) on mainline Li
 - Header peripherals as DT overlays: UART5, I2C4 by default; I2C2, UART2, SPI1 (spidev) selectable; USB2/USB3, IR receiver and line out on the 13-pin header — pin map in [docs/header.md](docs/header.md)
 - cpufreq 480–1416 MHz with thermal throttling at 70 °C
 - Board-only kernel config: everything built in except the UWE5622 modules
-- Persistent config (WiFi, SSH host key, BT pairings) on the NOR `nvm` partition (`/nvm`, JFFS2)
-- microSD as storage: mounted on `/sdcard` when inserted (ext4, FAT, exFAT; first mountable partition or the whole card), unmounted on removal. The card must not carry a bootloader (e.g. an old `sdcard.img`), or the board boots from it instead of the NOR
+- Persistent config (WiFi, SSH host key, BT pairings) on the NOR `nvm` partition (`/mnt/nvm`, JFFS2)
+- microSD as storage: mounted on `/mnt/sdcard` when inserted (ext4, FAT, exFAT; first mountable partition or the whole card), unmounted on removal. The card must not carry a bootloader (e.g. an old `sdcard.img`), or the board boots from it instead of the NOR
 - USB drives: each mountable partition (or the whole drive) on `/media/<label>` (filesystem label), or `/media/<UUID>` if it has no label or the name is taken, e.g. `/media/0732-C1B6`; created on insert, removed on unplug
 - mDNS: reachable as `br2-external-opiz3.local` on Ethernet and WiFi (mdnsd, also advertises SSH)
 - Dropbear SSH (key auth), BusyBox ntpd, alsa-utils, bluetoothctl, i2c-tools
@@ -49,7 +49,7 @@ NOR layout (also in the DT, `patches/linux/0009`):
 | `u-boot` | 0x000000 | 960 KiB | SPL + TF-A + U-Boot |
 | `env` | 0x0f0000 | 64 KiB | boot settings written by `fw_setenv` |
 | `system` | 0x100000 | 14.5 MiB | `nor-system.itb` |
-| `nvm` | 0xf80000 | 512 KiB | JFFS2, `/nvm` |
+| `nvm` | 0xf80000 | 512 KiB | JFFS2, `/mnt/nvm` |
 
 ### Update a running board
 
@@ -59,7 +59,7 @@ NOR layout (also in the DT, `patches/linux/0009`):
 ./flash.sh -d ~/Downloads/build-42 br2-external-opiz3.local   # files from a CI release
 ```
 
-The host needs mDNS name resolution (nss-mdns/Avahi, on by default on most desktops); an IP address works too. `flash.sh` copies each image over SSH, skips partitions that already match, writes with `flashcp`, verifies by reading back, then reboots (`-n`: don't). `env` and `nvm` are never touched. Safe on a running board: Linux runs from RAM and does not use the NOR except `/nvm`. If verification fails, don't reboot: run it again (or recover below).
+The host needs mDNS name resolution (nss-mdns/Avahi, on by default on most desktops); an IP address works too. `flash.sh` copies each image over SSH, skips partitions that already match, writes with `flashcp`, verifies by reading back, then reboots (`-n`: don't). `env` and `nvm` are never touched. Safe on a running board: Linux runs from RAM and does not use the NOR except `/mnt/nvm`. If verification fails, don't reboot: run it again (or recover below).
 
 ### First install, or the board does not come up
 
@@ -68,8 +68,8 @@ The boot ROM tries the SD card before the NOR, so a recovery card always works, 
 1. Write `sdcard.img` to a microSD card: `xz -dc sdcard.img.xz | sudo dd of=/dev/sdX bs=4M conv=fsync` (or `dd if=sdcard.img …`).
 2. Insert it and power on. The board boots Linux from the SD and gets its address by DHCP as usual; it answers to `br2-external-opiz3.local`.
 3. Write the NOR:
-   - Board already had this layout (keeps `/nvm`): `./flash.sh -n br2-external-opiz3.local`
-   - First install, or the NOR is unknown/corrupt (wipes `/nvm`: WiFi config, SSH host key, BT pairings):
+   - Board already had this layout (keeps `/mnt/nvm`): `./flash.sh -n br2-external-opiz3.local`
+   - First install, or the NOR is unknown/corrupt (wipes `/mnt/nvm`: WiFi config, SSH host key, BT pairings):
      ```
      cat output/images/nor.img | ssh root@br2-external-opiz3.local 'cat > /tmp/nor.img && /etc/init.d/S00nvm stop && flashcp -v /tmp/nor.img /dev/mtd0'
      ```
@@ -90,7 +90,7 @@ reboot
 
 An unknown overlay name makes U-Boot boot the base DTB without overlays. The first `fw_printenv`/`fw_setenv` on an empty `env` prints `Bad CRC, using default environment`; that is expected.
 
-WiFi: edit `/etc/wpa_supplicant.conf` (stored in `/nvm`), then `ifdown wlan0; ifup wlan0`.
+WiFi: edit `/etc/wpa_supplicant.conf` (stored in `/mnt/nvm`), then `ifdown wlan0; ifup wlan0`.
 
 ## Kernel patches
 

@@ -7,7 +7,7 @@ if [ "$ACTION" = remove ]; then
 	M=$(awk -v d=/dev/$MDEV '$1 == d {print $2}' /proc/mounts)
 	[ -n "$M" ] || exit 0
 	umount -l $M
-	[ $M = /sdcard ] || rmdir $M
+	[ $M = /mnt/sdcard ] || rmdir $M
 	exit 0
 fi
 
@@ -16,7 +16,7 @@ grep -q "^/dev/$MDEV " /proc/mounts && exit 0
 [ "$(mountpoint -d /)" = "$(cat $B/dev)" ] && exit 0
 case $MDEV in
 mmcblk*)
-	M=/sdcard
+	M=/mnt/sdcard
 	mountpoint -q $M && exit 0
 	;;
 *)
@@ -32,6 +32,6 @@ esac
 if mount -o noatime /dev/$MDEV $M 2>/dev/null; then
 	logger -t automount "/dev/$MDEV mounted on $M"
 else
-	[ $M = /sdcard ] || rmdir $M
+	[ $M = /mnt/sdcard ] || rmdir $M
 	logger -t automount "/dev/$MDEV: no mountable filesystem"
 fi

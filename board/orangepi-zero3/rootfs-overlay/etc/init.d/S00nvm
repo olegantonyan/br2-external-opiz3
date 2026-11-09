@@ -10,20 +10,20 @@ wait_mtd() {
 }
 
 start() {
-	printf "Mounting /nvm: "
-	if wait_mtd nvm && mount -t jffs2 -o noatime mtd:nvm /nvm; then
+	printf "Mounting /mnt/nvm: "
+	if wait_mtd nvm && mount -t jffs2 -o noatime mtd:nvm /mnt/nvm; then
 		echo "OK"
 	else
-		mount -t tmpfs -o mode=0755 tmpfs /nvm
+		mount -t tmpfs -o mode=0755 tmpfs /mnt/nvm
 		echo "FAIL (tmpfs)"
 	fi
-	mkdir -p -m 700 /nvm/dropbear /nvm/bluetooth
-	[ -e /nvm/wpa_supplicant.conf ] || install -m 600 /etc/wpa_supplicant.conf.template /nvm/wpa_supplicant.conf
+	mkdir -p -m 700 /mnt/nvm/dropbear /mnt/nvm/bluetooth
+	[ -e /mnt/nvm/wpa_supplicant.conf ] || install -m 600 /etc/wpa_supplicant.conf.template /mnt/nvm/wpa_supplicant.conf
 }
 
 stop() {
-	printf "Unmounting /nvm: "
-	umount /nvm && echo "OK" || echo "FAIL"
+	printf "Unmounting /mnt/nvm: "
+	umount /mnt/nvm && echo "OK" || echo "FAIL"
 }
 
 case "$1" in

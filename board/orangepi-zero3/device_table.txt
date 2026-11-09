@@ -1,7 +1,7 @@
 /etc/wpa_supplicant.conf.template	f	600	0	0	-	-	-	-	-
 /root/.ssh	d	700	0	0	-	-	-	-	-
 /root/.ssh/authorized_keys	f	600	0	0	-	-	-	-	-
-/nvm	d	755	0	0	-	-	-	-	-
-/sdcard	d	755	0	0	-	-	-	-	-
+/mnt/nvm	d	755	0	0	-	-	-	-	-
+/mnt/sdcard	d	755	0	0	-	-	-	-	-
 /media	d	755	0	0	-	-	-	-	-
 /usr/sbin/automount	f	755	0	0	-	-	-	-	-

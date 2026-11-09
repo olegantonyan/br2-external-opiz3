@@ -53,9 +53,9 @@ Other `output/` dirs: `build/` (per-package source/build trees), `host/` (toolch
   - `busybox.fragment` — additions merged into the stock BusyBox config
   - `uboot.fragment` — U-Boot boot command for NOR boot; U-Boot environment kept in RAM only
   - `patches/linux/`, `patches/uboot/` — via `BR2_GLOBAL_PATCH_DIR`, applied with `patch -F0` (no fuzz)
-  - `rootfs-overlay/` — firmware, init scripts, network config, SSH key, `automount` (mdev hotplug handler: microSD → `/sdcard`, USB → `/media/<label or UUID>`)
+  - `rootfs-overlay/` — firmware, init scripts, network config, SSH key, `automount` (mdev hotplug handler: microSD → `/mnt/sdcard`, USB → `/media/<label or UUID>`)
   - `device_table.txt` — file modes (the overlay copy does not keep them)
-  - `post-build.sh` — symlinks persistent config into `/nvm`; adds the mdev rules for `automount`; deletes files nothing links or runs (glib GIO/GObject, extra libnl/pcre2 libs, ALSA sample WAVs, libatomic)
+  - `post-build.sh` — symlinks persistent config into `/mnt/nvm`; adds the mdev rules for `automount`; deletes files nothing links or runs (glib GIO/GObject, extra libnl/pcre2 libs, ALSA sample WAVs, libatomic)
   - `post-image.sh` — builds `nor-system.itb` (LZMA kernel, DTB, overlays, `rootfs.cpio.xz`) and `nor.img`; fails if an image outgrows its partition
 - `external.mk` — also keeps `/boot` (kernel, extlinux) out of the initramfs
 - `flash.sh` — host-side NOR update over SSH
@@ -82,8 +82,8 @@ Patches apply only on a fresh extract, hence `dirclean`. `uwe5622` builds agains
 ## First boot
 
 - Login: `root` / `root` (serial, or SSH with the key in `rootfs-overlay/root/.ssh/authorized_keys`): `ssh root@br2-external-opiz3.local` (mDNS; hostname from `BR2_TARGET_GENERIC_HOSTNAME`).
-- From NOR the rootfs is an initramfs in RAM: writable, but changes are lost at reboot. Persistent state is on the NOR at `/nvm`.
-- To wipe `/nvm` (it is reformatted empty on the next mount): `/etc/init.d/S00nvm stop; flash_erase -j /dev/$(awk -F: '/"nvm"/ {print $1}' /proc/mtd) 0 0; reboot`. Never erase `/dev/mtd0`: it is the whole chip.
-- microSD: auto-mounted on `/sdcard`; USB drives on `/media/<label or UUID>` (`blkid` shows both) (`grep automount /var/log/messages`). A card with a bootloader at 8 KiB (`eGON.BT0` in `od -c -j 8196 -N 8 /dev/mmcblk0`) boots instead of the NOR. If its first partition starts at 1 MiB, wiping the gap keeps the data: `dd if=/dev/zero of=/dev/mmcblk0 bs=1k seek=8 count=1016`. Unmount before pulling a card or drive (`umount /sdcard`); removal only lazily unmounts.
-- WiFi: edit `/etc/wpa_supplicant.conf` (→ `/nvm`, survives reflashing), then `ifdown wlan0; ifup wlan0`.
+- From NOR the rootfs is an initramfs in RAM: writable, but changes are lost at reboot. Persistent state is on the NOR at `/mnt/nvm`.
+- To wipe `/mnt/nvm` (it is reformatted empty on the next mount): `/etc/init.d/S00nvm stop; flash_erase -j /dev/$(awk -F: '/"nvm"/ {print $1}' /proc/mtd) 0 0; reboot`. Never erase `/dev/mtd0`: it is the whole chip.
+- microSD: auto-mounted on `/mnt/sdcard`; USB drives on `/media/<label or UUID>` (`blkid` shows both) (`grep automount /var/log/messages`). A card with a bootloader at 8 KiB (`eGON.BT0` in `od -c -j 8196 -N 8 /dev/mmcblk0`) boots instead of the NOR. If its first partition starts at 1 MiB, wiping the gap keeps the data: `dd if=/dev/zero of=/dev/mmcblk0 bs=1k seek=8 count=1016`. Unmount before pulling a card or drive (`umount /mnt/sdcard`); removal only lazily unmounts.
+- WiFi: edit `/etc/wpa_supplicant.conf` (→ `/mnt/nvm`, survives reflashing), then `ifdown wlan0; ifup wlan0`.
 - Booted from the recovery SD the rootfs is the read-only ext4 on the card; maintenance writes: `mount -o remount,rw /`, then remount `ro` or reboot.

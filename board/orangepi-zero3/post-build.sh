@@ -2,9 +2,9 @@
 
 rm -f "$TARGET_DIR/etc/init.d/S01seedrng"
 rm -rf "$TARGET_DIR/var/lib/bluetooth"
-ln -snf /nvm/bluetooth "$TARGET_DIR/var/lib/bluetooth"
-ln -snf /nvm/dropbear "$TARGET_DIR/etc/dropbear"
-ln -snf /nvm/wpa_supplicant.conf "$TARGET_DIR/etc/wpa_supplicant.conf"
+ln -snf /mnt/nvm/bluetooth "$TARGET_DIR/var/lib/bluetooth"
+ln -snf /mnt/nvm/dropbear "$TARGET_DIR/etc/dropbear"
+ln -snf /mnt/nvm/wpa_supplicant.conf "$TARGET_DIR/etc/wpa_supplicant.conf"
 sed -i "s/ console=\${console}/ console=tty1 console=\${console}/" "$TARGET_DIR/boot/extlinux/extlinux.conf"
 grep -q "^tty1:" "$TARGET_DIR/etc/inittab" || echo "tty1::respawn:/sbin/getty 38400 tty1" >> "$TARGET_DIR/etc/inittab"
 grep -q automount "$TARGET_DIR/etc/mdev.conf" || printf 'mmcblk[0-9]+(p[0-9]+)?\troot:disk 660 */usr/sbin/automount\nsd[a-z][0-9]*\troot:disk 660 */usr/sbin/automount\n' >> "$TARGET_DIR/etc/mdev.conf"

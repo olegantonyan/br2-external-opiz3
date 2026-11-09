@@ -1,6 +1,6 @@
 # MPD size study (2026-11-09)
 
-Not in the image. Question: does MPD with all audio codecs fit into the free space of the `system` partition, with its database and state on `/sdcard`?
+Not in the image. Question: does MPD with all audio codecs fit into the free space of the `system` partition, with its database and state on `/mnt/sdcard`?
 
 Free space at the time: `nor-system.itb` 8.41 MB of 15.20 MB (14.5 MiB) → **6.79 MB**. The initramfs is xz-compressed inside the FIT, so what counts is compressed size.
 
@@ -65,7 +65,7 @@ BR2_PACKAGE_FFMPEG_DEMUXERS="aac ac3 aiff amr ape asf au caf dsf dts eac3 flac i
 
 `BR2_PACKAGE_MPD_MAD` defaults to y; ffmpeg decodes MP3, so it is off here. Add `BR2_PACKAGE_MPD_SIDPLAY`, `_FLUIDSYNTH` or `_MODPLUG` only if those formats are needed.
 
-MPD settings for state on the card: `db_file`, `state_file`, `sticker_file`, `playlist_directory` and `music_directory` under `/sdcard`. `/sdcard` is mounted asynchronously by the mdev daemon (S10mdev) and the card is polled (`broken-cd`), so an MPD init script should wait for `mountpoint -q /sdcard` with a timeout and cope with no card.
+MPD settings for state on the card: `db_file`, `state_file`, `sticker_file`, `playlist_directory` and `music_directory` under `/mnt/sdcard`. `/mnt/sdcard` is mounted asynchronously by the mdev daemon (S10mdev) and the card is polled (`broken-cd`), so an MPD init script should wait for `mountpoint -q /mnt/sdcard` with a timeout and cope with no card.
 
 ## Next to try: lighter TLS library
 

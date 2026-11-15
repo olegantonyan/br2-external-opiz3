@@ -47,7 +47,7 @@ Header: hostname, kernel, uptime, clock, date, NTP sync state (`adjtimex`). Card
 - **Temperature**: all thermal zones (GPU, VE, CPU, DDR), hottest one large, history. Colours: amber from 65 °C, red from 75 °C (cpufreq throttles at 70 °C).
 - **Network**: eth0 and wlan0 state, IPv4, link speed; WiFi SSID, RSSI, link rate and band from wpa_supplicant's control socket; rx/tx rates with history. Bluetooth rfkill state.
 - **Audio**: every ALSA playback device: idle/playing, rate, format, channels, owning process (`/proc/asound`); last format played and when.
-- **Storage**: `/mnt/nvm`, `/mnt/sdcard`, `/media/*` with filesystem and usage; USB devices (no hubs) with speed.
+- **Storage**: `/mnt/nvm`, `/media/*` with filesystem and usage; USB devices (no hubs) with speed.
 
 Footer: Esc hint (dimmed when no keyboard is attached), mode, monitor, render time per frame, hotplug/modeset counters.
 

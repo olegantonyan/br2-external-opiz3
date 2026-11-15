@@ -325,7 +325,7 @@ static void mounts(struct stats *s)
 	if (!f)
 		return;
 	while (s->nmnt < 8 && fscanf(f, "%127s %127s %31s %255[^\n]\n", dev, dir, fs, rest) == 4) {
-		if (strcmp(dir, "/mnt/nvm") && strcmp(dir, "/mnt/sdcard") && strncmp(dir, "/media/", 7))
+		if (strcmp(dir, "/mnt/nvm") && strncmp(dir, "/media/", 7))
 			continue;
 		struct statvfs v;
 		if (statvfs(dir, &v))
